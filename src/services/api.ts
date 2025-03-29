@@ -24,7 +24,7 @@ export const api = {
       const keyTakeaways = generateMockTakeaways(fileName);
       
       // Store the PDF summary in Supabase
-      const { error: summaryError } = await supabase
+      const { data: summaryData, error: summaryError } = await supabase
         .from('comic_summaries')
         .insert({
           id,
@@ -32,12 +32,15 @@ export const api = {
           content_name: fileName,
           content_type: 'pdf',
           takeaways: keyTakeaways,
-        });
+        })
+        .select();
         
       if (summaryError) {
         console.error('Error storing PDF summary:', summaryError);
         throw new Error('Failed to store PDF summary');
       }
+
+      console.log('Summary stored in Supabase:', summaryData);
 
       const pdfSummary: PDFSummary = {
         id,

@@ -19,11 +19,18 @@ export class FolderMonitor {
   public startMonitoring(onImageFound: (imageUrl: string) => void): void {
     this.onImageFoundCallback = onImageFound;
 
+    // For demonstration purposes - in a real implementation, this would be replaced
+    // with actual folder monitoring via a local server or File System Access API
+    console.log('Simulating monitoring of desktop folder "Mock"');
+    
     // Simulate the folder initially not having an image
     setTimeout(() => {
       // After 5 seconds, simulate an image appearing in the folder
       this.mockFolderHasImage = true;
+      
+      // Use a more descriptive mock image URL to simulate a file from local "Mock" folder
       this.mockImageUrl = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1064&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+      console.log('Mock image added to simulated "Mock" folder');
     }, 5000);
 
     this.intervalId = window.setInterval(() => this.checkFolder(), this.pollingInterval);
@@ -48,6 +55,10 @@ export class FolderMonitor {
     }
   }
 
-  // In a real implementation, this method would use the File System Access API
-  // or connect to a local server that has access to the file system
+  // Note: In a real implementation, this would use:
+  // 1. A local backend server that has filesystem access
+  // 2. The File System Access API (for supported browsers)
+  // 3. A desktop application companion using Electron or similar
+  //
+  // Browser security restrictions prevent direct filesystem access
 }
