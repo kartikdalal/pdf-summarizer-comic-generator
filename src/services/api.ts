@@ -1,6 +1,7 @@
 
 import { PDFSummary, ReferenceImage, ComicIllustration } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
 
 export const api = {
   uploadPDF: async (file: File): Promise<PDFSummary> => {
@@ -25,11 +26,11 @@ export const api = {
         "Tenth essential takeaway from the PDF."
       ];
       
-      // Generate a unique ID for the PDF
-      const id = generateId();
+      // Generate a proper UUID for the PDF (not using Math.random)
+      const id = uuidv4();
       
       // Store the PDF summary in Supabase
-      const { data: comicSummary, error: summaryError } = await supabase
+      const { error: summaryError } = await supabase
         .from('comic_summaries')
         .insert({
           id,
@@ -37,9 +38,7 @@ export const api = {
           content_name: file.name,
           content_type: 'pdf',
           takeaways: keyTakeaways,
-        })
-        .select()
-        .single();
+        });
         
       if (summaryError) {
         console.error('Error storing PDF summary:', summaryError);
@@ -67,10 +66,13 @@ export const api = {
       // Generate a unique file path for the image
       const filePath = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
 
-      // Upload the image to Supabase Storage
+      // The reference_images bucket is set to public, so we don't need authentication for uploading
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('reference_images')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          upsert: true,
+          cacheControl: '3600'
+        });
 
       if (uploadError) {
         console.error('Error uploading image to storage:', uploadError);
@@ -87,7 +89,7 @@ export const api = {
       }
 
       const referenceImage: ReferenceImage = {
-        id: generateId(),
+        id: uuidv4(),
         fileName: file.name,
         url: publicUrlData.publicUrl,
         createdAt: new Date().toISOString(),
@@ -107,7 +109,7 @@ export const api = {
       // For now, we'll implement the folder monitoring part
       
       const comicIllustration: ComicIllustration = {
-        id: generateId(),
+        id: uuidv4(),
         summaryId,
         imageId,
         url: '',  // Will be populated when we detect the image
@@ -125,7 +127,7 @@ export const api = {
 
 // Helper functions
 function generateId(): string {
-  return Math.random().toString(36).substring(2, 15);
+  return uuidv4();
 }
 
 function readFileAsText(file: File): Promise<string> {
