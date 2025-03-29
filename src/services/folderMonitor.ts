@@ -13,7 +13,7 @@ export class FolderMonitor {
 
   public startMonitoring(onImageFound: (imageUrl: string) => void): void {
     this.onImageFoundCallback = onImageFound;
-    console.log('Using static comic image instead of monitoring folder');
+    console.log('Using static comic image from public folder');
     
     // Use a small delay to simulate processing time
     setTimeout(() => {
@@ -31,7 +31,7 @@ export class FolderMonitor {
 
   private notifyImageFound(imageUrl: string): void {
     if (this.onImageFoundCallback) {
-      console.log('Image found, returning uploaded comic image!');
+      console.log('Image found, returning comic image from public folder:', imageUrl);
       this.onImageFoundCallback(imageUrl);
       this.stopMonitoring();
     }
