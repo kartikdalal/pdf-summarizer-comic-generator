@@ -20,6 +20,7 @@ export interface ComicIllustration {
   imageId: string;
   url: string;
   createdAt: string;
+  mediaType?: 'image' | 'video'; // Optional field to explicitly define media type
 }
 
 export interface AppState {

@@ -3,15 +3,17 @@
 
 export class FolderMonitor {
   private eventSource: EventSource | null = null;
-  private onImageFoundCallback: ((imageUrl: string) => void) | null = null;
+  private onImageFoundCallback: ((mediaUrl: string) => void) | null = null;
   private serverUrl = 'http://localhost:3001';
   private staticComicImage = '/lovable-uploads/dfe9dbbb-9e37-4979-9856-6533933bacc6.png';
+  // Example video path - this would be replaced with an actual video in your public folder
+  private staticComicVideo = '/lovable-uploads/dfe9dbbb-9e37-4979-9856-6533933bacc6.png'; // Change to .mp4 file when available
 
   constructor() {
     console.log('Folder monitor initialized with local server connection');
   }
 
-  public startMonitoring(onImageFound: (imageUrl: string) => void): void {
+  public startMonitoring(onImageFound: (mediaUrl: string) => void): void {
     this.onImageFoundCallback = onImageFound;
     console.log('Using uploaded comic image from public folder');
     
@@ -29,10 +31,10 @@ export class FolderMonitor {
     }
   }
 
-  private notifyImageFound(imageUrl: string): void {
+  private notifyImageFound(mediaUrl: string): void {
     if (this.onImageFoundCallback) {
-      console.log('Image found, returning superhero comic image:', imageUrl);
-      this.onImageFoundCallback(imageUrl);
+      console.log('Media found, returning:', mediaUrl);
+      this.onImageFoundCallback(mediaUrl);
       this.stopMonitoring();
     }
   }
