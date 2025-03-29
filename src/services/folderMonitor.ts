@@ -5,7 +5,7 @@ export class FolderMonitor {
   private eventSource: EventSource | null = null;
   private onImageFoundCallback: ((imageUrl: string) => void) | null = null;
   private serverUrl = 'http://localhost:3001';
-  private staticComicImage = '/lovable-uploads/11c652f6-a096-4f82-b5c3-296ccb8c6804.png';
+  private staticComicImage = '/lovable-uploads/dfe9dbbb-9e37-4979-9856-6533933bacc6.png';
 
   constructor() {
     console.log('Folder monitor initialized with local server connection');
@@ -13,7 +13,7 @@ export class FolderMonitor {
 
   public startMonitoring(onImageFound: (imageUrl: string) => void): void {
     this.onImageFoundCallback = onImageFound;
-    console.log('Using static comic image from public folder');
+    console.log('Using uploaded comic image from public folder');
     
     // Use a small delay to simulate processing time
     setTimeout(() => {
@@ -31,7 +31,7 @@ export class FolderMonitor {
 
   private notifyImageFound(imageUrl: string): void {
     if (this.onImageFoundCallback) {
-      console.log('Image found, returning comic image from public folder:', imageUrl);
+      console.log('Image found, returning superhero comic image:', imageUrl);
       this.onImageFoundCallback(imageUrl);
       this.stopMonitoring();
     }

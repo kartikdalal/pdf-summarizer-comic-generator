@@ -37,6 +37,7 @@ const ComicIllustrationCard = ({ comic }: ComicIllustrationCardProps) => {
             src={comic.url} 
             alt="Generated Comic Illustration"
             className="w-full object-contain mx-auto" 
+            style={{ maxHeight: "600px" }}
           />
         </div>
       </CardContent>
