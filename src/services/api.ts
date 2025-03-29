@@ -66,13 +66,20 @@ export const api = {
       // Generate a unique file path for the image
       const filePath = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
 
-      // The reference_images bucket is set to public, so we don't need authentication for uploading
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      // Create a signed URL for uploading to avoid RLS issues
+      const { data: uploadUrlData, error: uploadUrlError } = await supabase.storage
         .from('reference_images')
-        .upload(filePath, file, {
-          upsert: true,
-          cacheControl: '3600'
-        });
+        .createSignedUploadUrl(filePath);
+
+      if (uploadUrlError) {
+        console.error('Error creating signed upload URL:', uploadUrlError);
+        throw new Error('Failed to create upload URL');
+      }
+
+      // Upload using the signed URL
+      const { error: uploadError } = await supabase.storage
+        .from('reference_images')
+        .uploadToSignedUrl(filePath, uploadUrlData.token, file);
 
       if (uploadError) {
         console.error('Error uploading image to storage:', uploadError);
