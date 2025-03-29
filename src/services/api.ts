@@ -1,14 +1,14 @@
 
 import { PDFSummary, ReferenceImage, ComicIllustration } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 
-// This is a mock implementation until Supabase integration is complete
 export const api = {
   uploadPDF: async (file: File): Promise<PDFSummary> => {
     try {
-      // This would be replaced with actual Supabase upload and processing
+      // Read the PDF file content
       const fileContent = await readFileAsText(file);
       
-      // Mock PDF summary generation (this would be server-side with Supabase)
+      // Mock PDF summary generation (this would be replaced with actual AI processing)
       const summary = `This is a summary of ${file.name} with approximately ${Math.floor(fileContent.length / 100)} paragraphs.`;
       
       // Mock key takeaways extraction
@@ -24,9 +24,30 @@ export const api = {
         "Ninth meaningful conclusion drawn from the document.",
         "Tenth essential takeaway from the PDF."
       ];
+      
+      // Generate a unique ID for the PDF
+      const id = generateId();
+      
+      // Store the PDF summary in Supabase
+      const { data: comicSummary, error: summaryError } = await supabase
+        .from('comic_summaries')
+        .insert({
+          id,
+          title: file.name,
+          content_name: file.name,
+          content_type: 'pdf',
+          takeaways: keyTakeaways,
+        })
+        .select()
+        .single();
+        
+      if (summaryError) {
+        console.error('Error storing PDF summary:', summaryError);
+        throw new Error('Failed to store PDF summary');
+      }
 
       const pdfSummary: PDFSummary = {
-        id: generateId(),
+        id,
         fileName: file.name,
         summary,
         keyTakeaways,
@@ -43,13 +64,32 @@ export const api = {
 
   uploadImage: async (file: File): Promise<ReferenceImage> => {
     try {
-      // This would be replaced with actual Supabase storage
-      const imageUrl = await readFileAsDataURL(file);
-      
+      // Generate a unique file path for the image
+      const filePath = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+
+      // Upload the image to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('reference_images')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Error uploading image to storage:', uploadError);
+        throw new Error('Failed to upload image to storage');
+      }
+
+      // Get the public URL of the uploaded image
+      const { data: publicUrlData } = supabase.storage
+        .from('reference_images')
+        .getPublicUrl(filePath);
+
+      if (!publicUrlData || !publicUrlData.publicUrl) {
+        throw new Error('Failed to get public URL for uploaded image');
+      }
+
       const referenceImage: ReferenceImage = {
         id: generateId(),
         fileName: file.name,
-        url: imageUrl,
+        url: publicUrlData.publicUrl,
         createdAt: new Date().toISOString(),
       };
 
