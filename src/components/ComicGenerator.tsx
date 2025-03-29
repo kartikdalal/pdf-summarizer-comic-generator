@@ -1,11 +1,11 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wand2, AlertCircle, RotateCw } from 'lucide-react';
+import { Wand2, RotateCw } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { PDFSummary, ReferenceImage, ComicIllustration } from '@/types';
-import { api } from '@/services/api';
+import { v4 as uuidv4 } from 'uuid';
 import { FolderMonitor } from '@/services/folderMonitor';
 
 interface ComicGeneratorProps {
@@ -16,70 +16,46 @@ interface ComicGeneratorProps {
 
 const ComicGenerator = ({ pdfSummary, referenceImage, onComicGenerated }: ComicGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isMonitoring, setIsMonitoring] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [folderMonitor, setFolderMonitor] = useState<FolderMonitor | null>(null);
-  const [pendingComic, setPendingComic] = useState<ComicIllustration | null>(null);
   const { toast } = useToast();
 
   const canGenerate = !!pdfSummary && !!referenceImage && !isGenerating;
 
-  useEffect(() => {
-    // Initialize the folder monitor
-    const monitor = new FolderMonitor();
-    setFolderMonitor(monitor);
-
-    return () => {
-      // Clean up when component unmounts
-      if (monitor) {
-        monitor.stopMonitoring();
-      }
-    };
-  }, []);
-
   const handleGenerateComic = async () => {
-    if (!pdfSummary || !referenceImage || !folderMonitor) return;
+    if (!pdfSummary || !referenceImage) return;
 
     setIsGenerating(true);
-    setError(null);
+    toast({
+      title: 'Comic Generation Started',
+      description: 'Creating your comic illustration...',
+    });
     
-    try {
-      // Start the comic generation process
-      const comic = await api.generateComic(pdfSummary.id, referenceImage.id);
-      setPendingComic(comic);
+    // Create a new FolderMonitor instance for this generation
+    const folderMonitor = new FolderMonitor();
+    
+    // Create a new comic illustration object
+    const comic: ComicIllustration = {
+      id: uuidv4(),
+      summaryId: pdfSummary.id,
+      imageId: referenceImage.id,
+      url: '', // Will be populated when the image is found
+      createdAt: new Date().toISOString(),
+    };
+    
+    // Start monitoring for the image
+    folderMonitor.startMonitoring((imageUrl: string) => {
+      // Update the comic with the new image URL
+      const updatedComic = { ...comic, url: imageUrl };
       
-      // Start monitoring the folder
-      setIsMonitoring(true);
-      toast({
-        title: 'Comic Generation Started',
-        description: 'Monitoring folder for the generated image...',
-      });
-      
-      folderMonitor.startMonitoring((imageUrl: string) => {
-        // When an image is found in the folder
-        const updatedComic = { ...comic, url: imageUrl };
-        setPendingComic(null);
-        setIsMonitoring(false);
-        onComicGenerated(updatedComic);
-        
-        toast({
-          title: 'Comic Generated',
-          description: 'Successfully generated comic illustration!',
-        });
-        setIsGenerating(false);
-      });
-    } catch (err) {
-      console.error('Failed to generate comic:', err);
-      setError('Failed to generate comic. Please try again.');
-      setIsMonitoring(false);
+      // Notify the parent component
+      onComicGenerated(updatedComic);
       
       toast({
-        title: 'Generation failed',
-        description: 'Failed to generate comic. Please try again.',
-        variant: 'destructive',
+        title: 'Comic Generated',
+        description: 'Successfully generated comic illustration!',
       });
+      
       setIsGenerating(false);
-    }
+    });
   };
 
   return (
@@ -108,25 +84,6 @@ const ComicGenerator = ({ pdfSummary, referenceImage, onComicGenerated }: ComicG
               </div>
             </div>
           </div>
-
-          {isMonitoring && (
-            <div className="p-4 border rounded-lg bg-muted/30">
-              <div className="flex items-center gap-2 mb-2">
-                <RotateCw className="h-4 w-4 animate-spin text-primary" />
-                <span className="font-medium">Monitoring folder for generated image</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Once detected in your folder, the comic illustration will appear here.
-              </p>
-            </div>
-          )}
-
-          {error && (
-            <div className="flex items-center gap-2 text-destructive text-sm">
-              <AlertCircle className="h-4 w-4" />
-              <span>{error}</span>
-            </div>
-          )}
         </div>
       </CardContent>
       <CardFooter>

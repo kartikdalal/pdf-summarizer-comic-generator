@@ -1,7 +1,7 @@
 
 import { ComicIllustration } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ComicIllustrationCardProps {
@@ -9,33 +9,51 @@ interface ComicIllustrationCardProps {
 }
 
 const ComicIllustrationCard = ({ comic }: ComicIllustrationCardProps) => {
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = comic.url;
+    link.download = `comic-illustration-${comic.id}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Card className="w-full">
       <CardHeader className="pb-2">
-        <div className="flex items-center gap-2">
-          <BookOpen className="text-primary h-5 w-5" />
-          <CardTitle className="text-lg">Generated Comic Illustration</CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BookOpen className="text-primary h-5 w-5" />
+            <CardTitle className="text-lg">Generated Comic Illustration</CardTitle>
+          </div>
+          <CardDescription>
+            {new Date(comic.createdAt).toLocaleString()}
+          </CardDescription>
         </div>
-        <CardDescription>
-          Created on {new Date(comic.createdAt).toLocaleString()}
-        </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="w-full h-64 md:h-96 relative rounded-md overflow-hidden">
+        <div className="w-full rounded-md overflow-hidden bg-muted/20 p-2">
           <img 
             src={comic.url} 
             alt="Generated Comic Illustration"
-            className="w-full h-full object-contain" 
+            className="w-full object-contain mx-auto" 
           />
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex gap-2">
         <Button 
-          className="w-full" 
+          className="flex-1" 
           variant="outline"
           onClick={() => window.open(comic.url, '_blank')}
         >
           View Full Image
+        </Button>
+        <Button 
+          className="flex-1" 
+          onClick={handleDownload}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Download
         </Button>
       </CardFooter>
     </Card>
