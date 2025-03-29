@@ -1,4 +1,3 @@
-
 import { PDFSummary, ReferenceImage, ComicIllustration } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
@@ -41,6 +40,23 @@ export const api = {
       }
 
       console.log('Summary stored in Supabase:', summaryData);
+      
+      // Store takeaways in the new pdf_takeaways table
+      const { data: takeawaysData, error: takeawaysError } = await supabase
+        .from('pdf_takeaways')
+        .insert({
+          pdf_id: id,
+          takeaways: keyTakeaways,
+        })
+        .select();
+        
+      if (takeawaysError) {
+        console.error('Error storing PDF takeaways:', takeawaysError);
+        // Continue execution even if takeaways storage fails
+        // We don't want to block the whole process for this
+      } else {
+        console.log('Takeaways stored in Supabase:', takeawaysData);
+      }
 
       const pdfSummary: PDFSummary = {
         id,

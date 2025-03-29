@@ -63,6 +63,35 @@ export type Database = {
         }
         Relationships: []
       }
+      pdf_takeaways: {
+        Row: {
+          created_at: string
+          id: string
+          pdf_id: string | null
+          takeaways: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pdf_id?: string | null
+          takeaways: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pdf_id?: string | null
+          takeaways?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdf_takeaways_pdf_id_fkey"
+            columns: ["pdf_id"]
+            isOneToOne: false
+            referencedRelation: "comic_summaries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       takeaways: {
         Row: {
           content: string
