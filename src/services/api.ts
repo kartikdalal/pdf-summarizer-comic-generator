@@ -66,20 +66,13 @@ export const api = {
       // Generate a unique file path for the image
       const filePath = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
 
-      // Create a signed URL for uploading to avoid RLS issues
-      const { data: uploadUrlData, error: uploadUrlError } = await supabase.storage
+      // Now that we have the proper RLS policies, we can upload directly
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('reference_images')
-        .createSignedUploadUrl(filePath);
-
-      if (uploadUrlError) {
-        console.error('Error creating signed upload URL:', uploadUrlError);
-        throw new Error('Failed to create upload URL');
-      }
-
-      // Upload using the signed URL
-      const { error: uploadError } = await supabase.storage
-        .from('reference_images')
-        .uploadToSignedUrl(filePath, uploadUrlData.token, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
 
       if (uploadError) {
         console.error('Error uploading image to storage:', uploadError);
